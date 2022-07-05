@@ -1,6 +1,11 @@
-"""
-Author: Elijah Ang Hao Wei
-"""
+# -*- coding: utf-8 -*-
+#--------------------------------------------------------------------------------------------------------------------------
+# Author    :   E. Ang
+# Date      :   6/7/2022
+# version ='1.1'
+#--------------------------------------------------------------------------------------------------------------------------
+"""2D UVLM solver for flat plate airfoil undergoing sudden acceleration. Results compared with Kutta-Joukowski theorem."""
+#--------------------------------------------------------------------------------------------------------------------------
 
 import numpy as np
 from numpy.linalg import inv
@@ -24,12 +29,14 @@ dt = 0.01           #Timestep size
 wake_vortex_factor = 0.3    #Location of wake panels (0 - 1)
 
 def VOR2D(Gamma, x_c, z_c, x_v, z_v):
+    """This function returns a vector of the induced velocity on an arbitrary point due to a point vortex."""
     r_2 = (x_c-x_v)**2 + (z_c - z_v)**2
     u = Gamma/(2*np.pi*r_2)*(z_c - z_v)
     w = -Gamma/(2*np.pi*r_2)*(x_c - x_v)
     return np.array([u, w])
 
 def DISCRETISE(chord, n_bound, delta_c, n_wake, V_inf, dt, wake_vortex_factor):
+    """This function discretise the flat plate and returns coordinates of vortices and collocation points"""
     x_vortex = np.zeros(n_bound)
     z_vortex = np.zeros(n_bound)
     x_collocation = np.zeros(n_bound)
