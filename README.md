@@ -1,11 +1,16 @@
-# 2D Vortex Methods
+# Vortex Panel Methods
 
-This repository provides examples for 2D vortex methods for computing aerodynamic lift.
+This repository provides examples for vortex panel methods for computing aerodynamic lift.
 
 ## Current Capabilities
-Unsteady flow
-Thin airfoils
+2D wings \\
+Unsteady flow \\
+Thin airfoils \\
 
 ## Available Methods:
-Unsteady Lumped Vortex Method
-Unsteady Linear Strength Vortex Panel Method [under development]
+### 2D Airfoils
+Unsteady Lumped Vortex Method \\
+Unsteady Linear Strength Vortex Panel Method [under development] \\
+
+### 3D Wings
+Unsteady Vortex Lattice Method [under development]
