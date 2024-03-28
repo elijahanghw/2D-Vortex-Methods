@@ -3,25 +3,26 @@
 # Author    :   E.H.W Ang
 # Date      :   6/7/2022
 #--------------------------------------------------------------------------------------------------------------------------
-"""Unsteady Linear Vortex solver for flat plate airfoil undergoing sudden acceleration. Results compared with Kutta-Joukowski theorem."""
+"""Unsteady Linear Vortex solver for flat plate airfoil with oscillating control surfaces."""
 #--------------------------------------------------------------------------------------------------------------------------
 
 import numpy as np
 from numpy.linalg import inv
 import matplotlib.pyplot as plt
 
-from lib.two_dim.singularities import LinVOR2D
-from lib.two_dim.singularities import VOR2D
+from lib.singularities_2D import LinVOR2D
+from lib.singularities_2D import VOR2D
 from lib.geometry import NACA_thin
 
 ## Define airfoil properties
 chord = 2           #Chord length
-n_bound = 10      #Number of bound panels
+n_bound = 20      #Number of bound panels
 n_wake = 500       #Number of wake panels
+cs = 0.8           #Chordwise location of control surface
 
 ## Define freestream properties
 V_inf = 10          #Freestream velocity
-AoA = 5             #Angle of attack (deg)
+AoA = 0             #Angle of attack (deg)
 rho = 1             #Freestream density
 
 ## Define simulation parameters
@@ -84,21 +85,27 @@ B_top = np.concatenate((B_b, B_w), axis=1)
 B_bot = np.concatenate((B_bw, B_ww), axis=1)
 B = np.concatenate((B_top, B_bot), axis=0)
 
-## Define downwash vector
+## Define freestream downwash vector
 W_b = np.zeros(n_bound+1)
 W_w = np.zeros(n_wake)
 
 for i in range(n_bound):
-    Freestream_x = -V_inf * np.cos(AoA * np.pi/180) 
-    Freestream_y = -V_inf * np.sin(AoA * np.pi/180)
+    Freestream_x = -V_inf                       #Small angle approximation
+    Freestream_y = -V_inf * AoA * np.pi/180     #Small angle approximation
 
     W_b[i] = np.dot(np.array([Freestream_x, Freestream_y]), airfoil.normal[i])
     
-W = np.concatenate((W_b, W_w), axis=0)
+W_f = np.concatenate((W_b, W_w), axis=0)
+
+## Define control surface  downwash vector
+W_cs = np.zeros(n_bound+1)
+W_cs[int(cs*n_bound):n_bound] = -V_inf        #Small angle approximation
+W_cs = np.concatenate((W_cs, W_w), axis=0)
 
 ## State-space form
 A_sys = inv(A) @ B
-W_sys = inv(A) @ W
+B_sys = inv(A) @ W_cs
+Wf_sys = inv(A) @ W_f
 
 ## Time stepping solution
 gamma_old = np.zeros((n_bound+1+n_wake))
@@ -107,10 +114,12 @@ Gamma_new = np.zeros(n_bound)
 time = []
 Cl = []
 
+u = 5 * np.pi/180 * np.sin(1 * dt*np.arange(0, num_steps))       #Flap deflection (radians)
+
 for T in range(num_steps):
     time.append(T*dt)
     Lift = 0
-    gamma_new = A_sys @ gamma_old + W_sys
+    gamma_new = A_sys @ gamma_old + B_sys*u[T] + Wf_sys
     gamma_new_bound = gamma_new[0:n_bound+1]
     gamma_old_bound = gamma_old[0:n_bound+1]
     gamma_new_wake = gamma_new[n_bound+1:]
@@ -130,15 +139,8 @@ for T in range(num_steps):
 
 plt.figure()
 plt.plot(time, Cl, color='k')
-plt.plot(time, 2*np.pi*AoA*np.pi/180*np.ones_like(time), color='r', linestyle="--")
-plt.legend(["2D Linear Vortex", "Kutta-Joukowski"])
 plt.xlabel("time")
 plt.ylabel("$C_l$")
 plt.grid()
 
-plt.figure()
-plt.plot(x_vortex/chord, gamma_new_bound, "-x")
-plt.xlabel("x/c")
-plt.ylabel("$\gamma$")
-plt.grid()
 plt.show()

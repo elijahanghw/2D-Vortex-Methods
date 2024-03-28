@@ -10,7 +10,7 @@ import numpy as np
 from numpy.linalg import inv
 import matplotlib.pyplot as plt
 
-from lib.two_dim.singularities import VOR2D
+from lib.singularities_2D import VOR2D
 from lib.geometry import NACA_thin
 
 ## Define airfoil properties
